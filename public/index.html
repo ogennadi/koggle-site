@@ -1,177 +1,245 @@
 ﻿<html>
   <head>
+    <title>Koggle: A Kanji Word Search Game</title>
+    <meta name="description" content="Play Koggle, a word-search game&mdash;like Boggle&mdash;that uses Japanese kanji characters.">
     <script src="jquery-1.8.1.min.js"></script>
-    <script>
-      $(document).ready(function() {
-        var games_count       = 1000;
-        var game_index        = Math.floor(Math.random() * games_count);
+    
+    <script src="game.js"></script>
+    
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-25743661-5']);
+      _gaq.push(['_setDomainName', 'koggle.net']);
+      _gaq.push(['_trackPageview']);
 
-        $.getJSON('games/'+ game_index +'.json', function(data){
-          var word_list         = data["word_list"];
-          var character_list    = data["character_list"];
-          var time_left         = 59;
-          var word_found_array  = init_word_found_array(word_list);
-          
-          setup_board(word_list);      
-
-          function setup_board(list) {
-            // start timer
-            var timer = setInterval(function(){
-              if (time_left == 0){
-                stop_timer();
-                end_game();
-                return;
-              }
-              
-              time_left--;
-              $('#timer').text(time_left);
-            }, 1000);
-            
-            // grid of individual kanji
-            for (var i = 0; i < character_list.length; i++){
-              $('#board').append('<button id="'+ i +'" class="control">'+ character_list[i] +'</button>');
-            }
-            
-            // list of found words
-            for (var i = 0; i < list.length; i++) {
-              $('#wordlist').append('<li id="w'+ i +'">'+ mask_word(list[i].word) +'</li>');
-            }
-            
-            // kanji buttons clickable
-            $('#board button').click(function(event){
-              click_kanji(event.target.id);
-            });
-          
-            // check button clickable
-            $('#check').click(function(){
-              check();
-            });
-          }
-          
-          function click_kanji(id) {
-            clicked_kanji = document.getElementById(id);
-            
-            if (hasClass(clicked_kanji, "clicked")) {
-              return;
-            }
-            
-            clicked_kanji.className += " clicked";
-            
-            selected_paragraph = document.getElementById("selected");
-            selected_paragraph.innerHTML = selected_paragraph.innerHTML + clicked_kanji.innerHTML;
-          }
-          
-          function hasClass(element, cls) {
-            return (' ' + element.className + ' ').indexOf(' ' + cls + ' ') > -1;
-          }
-          
-          function check() {
-            $('#board button').removeClass('clicked');
-            check_text = $('p#selected').text();
-            $('p#selected').text('');
-            
-            for (var i = 0; i < word_list.length; i++) {          
-              if (word_list[i].word.length == check_text.length && word_list[i].word == check_text) {
-                $('#wordlist #w' + i).text(word_list[i].word + ', ' +
-                                           word_list[i].reading + ', ' +
-                                           word_list[i].meaning);
-                word_found_array[i] = true;
-                set_status ('found word: ' + word_list[i].word);
-                break;
-              }
-            }
-            
-            if (end_condition()){
-              end_game();
-            }
-          }
-          
-          // returns true if the game has been won or lost
-          function end_condition() {
-            for(var i = 0; i < word_found_array.length; i++){
-              if (!word_found_array[i]){
-                return false;
-              }
-            }
-            
-            return true;
-          }
-          
-          // returns a new array with all elements set to v
-          function init_word_found_array(word_list) {
-            ret = Array(word_list.length);
-            for (var i = 0; i < word_list.length; i++){
-              ret[i] = false;
-            }
-            
-            return ret;
-          }
-          
-          function end_game() {
-            $('.control').attr('disabled', '');
-            stop_timer();
-            set_status('Game over');
-            display_all_words();
-          }
-          
-          function set_status(text) {
-            $('#status').text(text);
-          }
-          
-          function stop_timer() {
-            clearInterval(timer);
-          }
-
-          
-          function mask_word(word){
-            var display = Array(word.length);
-            
-            for(var i = 0; i < display.length; i++ ){
-              display[i] = '_';
-            }
-            
-            return display.join(' ');
-          }
-
-          function display_all_words() {
-            $('#wordlist').html('');
-
-            for (var i = 0; i < word_list.length; i++) {
-              $('#wordlist').append('<li id="w'+ i +'" class="'+ (word_found_array[i] ? 'found' :  'notfound') +   '">'+ word_list[i].word + ', ' + word_list[i].reading + ', ' + word_list[i].meaning +'</li>');
-            }
-
-          }
-        });
-    });
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
     </script>
 
     <style>
-      .notfound {
-        color: green;
+      body {
+        margin: 0;
       }
+      
+      #selected, #check, #newgame_box, #board td {
+        font-size: 2em;
+      }
+      
+      #statusbox, #timer_box, #splash{
+        font-size: 1.1em;
+      }
+      
+      h1 {
+        font-size: 3em;
+        margin-bottom: 0.3em;
+      }
+      
+      h1 span {
+        color: red;
+      }
+      
+      h2 {
+        font-size: 1em;
+        margin: 0;
+      }
+      
+            
+      header, footer {
+        text-align: center;
+        background-color: black;
+        color: white;
+      }
+
+      p {
+        margin-top: 0;
+      }
+      
+      
+      a:hover {
+        color: red;
+      }
+      
+  
+      a {
+        color: white;
+      }
+      
+      #main {
+        padding-top: 2em;
+        width:20em; 
+        margin: auto;
+        display: none;
+      }
+      
+      section {
+        min-height: 20em;
+      }
+
+      .notfound {
+        color: grey;
+      }
+
+      #board table{
+        border-collapse: collapse;
+        border: 0.15em solid;
+      }
+
+      #board td {
+        border: 0.05em solid;
+        background-color: white;
+        color: black;
+        cursor: pointer;
+        padding: 0.4em 0.3em;
+      }
+
+      #board td.hidden {
+         background-color: white;
+         color: white;
+      }
+
+      #board td.disabled, #board td.disabled:hover {
+        background-color: grey;
+        color: white;
+        cursor: default;
+      }
+
+      #board td:hover{
+        background-color: black;
+        color: white;
+      }
+
+      #board .clicked {
+        background-color: black;
+        color: white;
+      }
+
+      #board table {
+        width: 5em;
+        margin: auto;
+      }
+      
+      #selected {
+        width: 5em;
+        height: 1em;
+      }
+
+      
+      #check {
+      }
+
+      #status {
+        display: none;
+      }
+
+      #statusbox {
+        height: 1em;
+      }
+
+      #timer_box {
+        height: 1em;
+      }
+
+      #timer.lowtime {
+        color: red;
+      }
+
+      #splash {
+        position: absolute;
+        left: 0;
+        top; 0;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+        opacity: 0.8;
+        color: white;
+        font-weight: bold;
+      }
+      
+      #instructions{
+        padding-top: 2em;
+        width: 20em;
+        margin: auto;
+      }
+
+      #newgame {
+        display: none;
+      }
+
+      #timer_box, #statusbox, #newgame_box, #check_box, #selected_box {
+        text-align: center;
+      }
+
     </style>
+    
   </head>
   <body>
-    <p id="status">Game in progress</p>
+    <header>
+      <h1>K<span>o</span>ggle</h1>
+      <h2>A Kanji Word Search Game by <a href="http://oge.nnadi.org">Oge Nnadi</a></h2>
+    </header>
+    <section>
+      <div id="splash">
+        <div id="instructions">
+          <ul>
+            <li>Find as many words as you can before the time runs out</li>
+            <li>To find a word, select characters from the grid then click 'Check'</li>
+            <li>Only words that contain at least one Kanji count</li>
+            <button id="start">Start Game</button>
+          </ul>
+        </div>
+      </div>
 
-    <p>Time left <span id="timer">-:--</span></p>
+      <div id="main">
+        <p id="timer_box"><span id="timer">---</span></p>
 
-    <div id="board">
-      <h3>Board</h3>
-      <!-- <button id="0" class="control">一</button> -->
-    </div>
+        <p id="statusbox"><span id="status"></span></p>
 
-    <button id="check" class="control">Check</button>
+        <div id="newgame_box"><button id="newgame" onclick="location.reload()">New Game</button></div>
 
-    <h3>Selected</h3>
+        <div id="selected"></div>
+        
+        <p id="check_box"><button id="check" class="control">Check</button></p>
 
-    <p id="selected"></p>
+        <div id="board">
+          <table>
+            <tr>
+              <td id="0" class="control"></td>
+              <td id="1" class="control"></td>
+              <td id="2" class="control"></td>
+              <td id="3" class="control"></td>
+            </tr>
+            <tr>
+              <td id="4" class="control"></td>
+              <td id="5" class="control"></td>
+              <td id="6" class="control"></td>
+              <td id="7" class="control"></td>
+            </tr>
+            <tr>
+              <td id="8" class="control"></td>
+              <td id="9" class="control"></td>
+              <td id="10" class="control"></td>
+              <td id="11" class="control"></td>
+            </tr>
+            <tr>
+              <td id="12" class="control"></td>
+              <td id="13" class="control"></td>
+              <td id="14" class="control"></td>
+              <td id="15" class="control"></td>
+            </tr>
+          </table>
+        </div>
 
-    <h3>Found</h3>
-    <ol id="wordlist">
-      <!-- <li id="w0">_ _</li> -->
-    </ol>
-
-    <button onclick="location.reload()">New Game</button>
+        <h3>Found</h3>
+        <ol id="wordlist">
+          <!-- <li id="w0">_ _</li> -->
+        </ol>
+      </div>
+    </section>
+    <footer>
+      Please send bug reports to <a href="mailto:oge@nnadi.org">oge@nnadi.org</a> or via the <a href="https://github.com/ogennadi/kanjigame">Github page</a>.
+    </footer>
   </body>
-  </html>
+</html>
