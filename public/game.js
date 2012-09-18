@@ -71,20 +71,15 @@
     }
     
     function click_kanji(id) {
-      clicked_kanji = document.getElementById(id);
+      clicked_kanji = $('#'+id);
       
-      if (hasClass(clicked_kanji, "clicked")) {
-        return;
-      }
-      
-      clicked_kanji.className += " clicked";
-      
-      selected_paragraph = document.getElementById("selected");
-      selected_paragraph.innerHTML = selected_paragraph.innerHTML + clicked_kanji.innerHTML;
-    }
-    
-    function hasClass(element, cls) {
-      return (' ' + element.className + ' ').indexOf(' ' + cls + ' ') > -1;
+      if (clicked_kanji.hasClass("clicked")) {
+				clicked_kanji.removeClass("clicked");
+				$("#selected").text($("#selected").text().replace(clicked_kanji.text(), ''));
+      }else {
+				clicked_kanji.addClass("clicked");
+				$("#selected").append(clicked_kanji.text());
+			}
     }
     
     function check() {
@@ -97,8 +92,14 @@
           $('#wordlist #w' + i).text(word_list[i].word + ', ' +
                                      word_list[i].reading + ', ' +
                                      word_list[i].meaning);
+
+          if(word_found_array[i]){
+						flash_status ('already found: ' + word_list[i].word + ', ' +word_list[i].reading);
+          }else {
+						flash_status ('found word: ' + word_list[i].word + ', ' +word_list[i].reading);
+          }
+
           word_found_array[i] = true;
-          flash_status ('found word: ' + word_list[i].word + ', ' +word_list[i].reading);
           break;
         }
       }
