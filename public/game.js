@@ -83,6 +83,7 @@
     }
     
     function check() {
+			var word_found = false;
       $('#board td').removeClass('clicked');
       check_text = $('#selected').text();
       $('#selected').text('');
@@ -94,19 +95,29 @@
                                      word_list[i].meaning);
 
           if(word_found_array[i]){
-						flash_status ('already found: ' + word_list[i].word + ', ' +word_list[i].reading);
+						set_status ('already found: ' + word_list[i].word + ', ' +
+												word_list[i].reading  + ', ' +
+												word_list[i].meaning);
           }else {
-						flash_status ('found word: ' + word_list[i].word + ', ' +word_list[i].reading);
+						set_status (word_list[i].word + ', ' +
+												word_list[i].reading  + ', ' +
+												word_list[i].meaning);
           }
 
           word_found_array[i] = true;
+					word_found = true;
+
+					if (end_condition()){
+						end_game();
+					}
+
           break;
         }
       }
-      
-      if (end_condition()){
-        end_game();
-      }
+
+			if(!word_found){
+				set_status ('word not found: ' + check_text);
+			}
     }
     
     // returns true if the game has been won or lost
@@ -148,7 +159,7 @@
     }
 
     function set_status(text) {
-      $('#status').text(text).fadeIn(100);
+      $('#status').text(text).hide().fadeIn(250);
     }
     
     function stop_timer() {
